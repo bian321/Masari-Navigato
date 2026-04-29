@@ -137,7 +137,7 @@ if prompt := st.chat_input("اكتب إجابتك هنا..."):
                     st.error(f"فشل في التحليل النهائي: {e}")
             else:
                 st.error("الموديل غير متوفر حالياً.")          
-        }
+        
     ]
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
