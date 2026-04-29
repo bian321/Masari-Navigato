@@ -13,7 +13,7 @@ except:
 
 # تحديد اسم الموديل بدقة (هنا حل مشكلة الـ NotFound)
 # استخدمنا الإصدار الثابت والأكثر توافقاً
-MODEL_NAME = 'gemini-1.5-flash' 
+MODEL_NAME = 'gemini-pro' 
 
 st.title("🗺️ مساري - البوصلة المهنية")
 
