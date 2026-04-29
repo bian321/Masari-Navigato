@@ -1,26 +1,35 @@
 import streamlit as st
 import google.generativeai as genai
 
-# إعداد الصفحة
 st.set_page_config(page_title="مساري | Masari", page_icon="🗺️")
-
-# استدعاء المفتاح السري من Streamlit Secrets
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-    genai.configure(api_key=api_key)
-except:
-    st.error("المفتاح السري (API Key) غير موجود في الإعدادات!")
-
-# تحديد اسم الموديل بدقة (هنا حل مشكلة الـ NotFound)
-# استخدمنا الإصدار الثابت والأكثر توافقاً
-MODEL_NAME = 'models/gemini-pro' 
-
 st.title("🗺️ مساري - البوصلة المهنية")
 
+# جلب المفتاح
+if "GOOGLE_API_KEY" not in st.secrets:
+    st.error("المفتاح غير موجود في Secrets!")
+    st.stop()
+
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
+# دالة لاكتشاف الموديل الشغال تلقائياً
+def get_working_model():
+    try:
+        # محاولة أولى بالاسم الشائع
+        return genai.GenerativeModel('gemini-1.5-flash')
+    except:
+        try:
+            # محاولة البحث في القائمة المتاحة للحساب
+            for m in genai.list_models():
+                if 'generateContent' in m.supported_generation_methods:
+                    return genai.GenerativeModel(m.name)
+        except Exception as e:
+            st.error(f"فشل الاتصال بجوجل: {e}")
+            return None
+
+model = get_working_model()
+
 if "messages" not in st.session_state:
-    st.session_state.messages = []
-    welcome_text = "أهلاً بكِ وبك في رحلة اكتشاف المسار. 🚀 أنا 'مساري'. احكي لي عن تخصصك وهواياتك لنرسم طريقك سوا!"
-    st.session_state.messages.append({"role": "assistant", "content": welcome_text})
+    st.session_state.messages = [{"role": "assistant", "content": "أهلاً بك في 'مساري'. كيف أساعدك اليوم؟"}]
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -28,23 +37,15 @@ for message in st.session_state.messages:
 
 if prompt := st.chat_input("بماذا أفكر؟"):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    with st.chat_message("user"): st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        try:
-            # تعريف الموديل داخل المحادثة للتأكد من استدعاء الخدمة صح
-            model = genai.GenerativeModel(MODEL_NAME)
-            
-            # توجيهات النظام
-            system_instruction = "أنت خبير توجيه مهني اسمك 'مساري'. لغتك ودودة ومهنية."
-            
-            response = model.generate_content(f"{system_instruction}\n\nالمستخدم: {prompt}")
-            
-            if response.text:
+        if model:
+            try:
+                response = model.generate_content(prompt)
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
-            else:
-                st.error("لم أستطع توليد رد، حاول مرة أخرى.")
-        except Exception as e:
-            st.error(f"حدث خطأ تقني: {e}")
+            except Exception as e:
+                st.error(f"خطأ في التوليد: {e}")
+        else:
+            st.error("لم يتم العثور على موديل متاح لهذا المفتاح.")
