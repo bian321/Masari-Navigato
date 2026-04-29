@@ -33,7 +33,9 @@ if "messages" not in st.session_state:
             "content": "أهلاً بكِ وبك في رحلة اكتشاف المسار. 🚀 أنا 'مساري'. \n\nاحكي لي شوي عنك: شو درست؟ وشو الإشي اللي بتحب تعمله وبتنسى الوقت وأنت بتسويه؟"
         }
     ]
-
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 # الجزء الخاص بتوليد الرد (الذكاء والشخصية)
 if prompt := st.chat_input("احكي لي عن تطلعاتك..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
