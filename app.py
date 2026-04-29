@@ -26,14 +26,15 @@ def load_model():
         return None
 
 model = load_model()
-
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "أهلاً بكِ في 'مساري'. كيف أساعدكِ اليوم؟"}]
+    st.session_state.messages = [
+        {
+            "role": "assistant", 
+            "content": "أهلاً بكِ وبك في رحلة اكتشاف المسار. 🚀 أنا 'مساري'. \n\nاحكي لي شوي عنك: شو درست؟ وشو الإشي اللي بتحب تعمله وبتنسى الوقت وأنت بتسويه؟"
+        }
+    ]
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
+# الجزء الخاص بتوليد الرد (الذكاء والشخصية)
 if prompt := st.chat_input("احكي لي عن تطلعاتك..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -42,12 +43,17 @@ if prompt := st.chat_input("احكي لي عن تطلعاتك..."):
     with st.chat_message("assistant"):
         if model:
             try:
-                # إضافة تعليمات النظام لضمان الشخصية
-                full_prompt = f"أنت خبير توجيه مهني اسمك 'مساري'. \nالمستخدم: {prompt}"
+                # تعليمات النظام ليرجع البوت "مساري" الخبير
+                system_instruction = (
+                    "أنت خبير التوجيه المهني 'مساري'. مهمتك مساعدة الشباب في العثور على تقاطع أحلامهم مع سوق العمل. "
+                    "ابدأ دائماً بتحليل كلام المستخدم، قدم خطة عمل (Roadmap) مقسمة لـ 90 يوماً، واقترح مهارات تقنية. "
+                    "تحدث بلغة عربية سلسة ومحفزة."
+                )
+                
+                full_prompt = f"{system_instruction}\n\nالمستخدم: {prompt}"
                 response = model.generate_content(full_prompt)
+                
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             except Exception as e:
                 st.error(f"فشل في توليد الرد: {e}")
-        else:
-            st.error("لم أجد أي موديل متاح لهذا المفتاح. تأكدي من تفعيل Generative Language API في Google Cloud.")
