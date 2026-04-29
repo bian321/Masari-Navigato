@@ -85,6 +85,57 @@ if prompt := st.chat_input("اكتب إجابتك هنا..."):
                 except Exception as e:
                     st.error(f"فشل في التحليل النهائي: {e}")
             else:
+                st.error("الموديل غير متوفر حالياً.")]
+
+# 4. تهيئة الجلسة (نفس منطق الكود الشغال)
+if "messages" not in st.session_state:
+    intro_text = (
+        "أهلاً بكِ وبك في رحلة اكتشاف الذات! ✨\n\n"
+        "أنا **'مساري'**، بوصلتك المهنية الذكية. 🗺️\n"
+        "رح أسألك كم سؤال، واحد ورا الثاني، عشان أرسم لك مسارك صح.\n\n"
+        "**السؤال الأول:** " + QUESTIONS[0]
+    )
+    st.session_state.messages = [{"role": "assistant", "content": intro_text}]
+    st.session_state.question_index = 0
+    st.session_state.user_answers = []
+
+# 5. عرض الرسائل (الضروري لظهور الترحيب)
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 6. معالجة الإجابات (سؤال بسؤال)
+if prompt := st.chat_input("اكتب إجابتك هنا..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.user_answers.append(prompt)
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        st.session_state.question_index += 1
+        
+        # إذا لسه في أسئلة، اطرح السؤال التالي
+        if st.session_state.question_index < len(QUESTIONS):
+            next_q = QUESTIONS[st.session_state.question_index]
+            st.markdown(next_q)
+            st.session_state.messages.append({"role": "assistant", "content": next_q})
+        
+        # إذا خلصنا، حلل النتائج بذكاء مساري
+        else:
+            if model:
+                try:
+                    with st.spinner("جاري تحليل شخصيتك ورسم مسارك..."):
+                        summary_data = "\n".join([f"سؤال {i+1}: {st.session_state.user_answers[i]}" for i in range(len(QUESTIONS))])
+                        system_instruction = (
+                            "أنت خبير التوجيه المهني 'مساري'. حلل إجابات المستخدم بدقة وقدم له "
+                            "تحليل شخصي، 3 مهن عصرية، وخطة عمل 90 يوم. تحدث بلغة ملهمة وعربية."
+                        )
+                        response = model.generate_content(f"{system_instruction}\n\nبيانات المستخدم:\n{summary_data}")
+                        st.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                except Exception as e:
+                    st.error(f"فشل في التحليل النهائي: {e}")
+            else:
                 st.error("الموديل غير متوفر حالياً.")            )
         }
     ]
