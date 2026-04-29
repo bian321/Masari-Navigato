@@ -85,7 +85,7 @@ if prompt := st.chat_input("اكتب إجابتك هنا..."):
                 except Exception as e:
                     st.error(f"فشل في التحليل النهائي: {e}")
             else:
-                st.error("الموديل غير متوفر حالياً.")]
+                st.error("الموديل غير متوفر حالياً.")
 
 # 4. تهيئة الجلسة (نفس منطق الكود الشغال)
 if "messages" not in st.session_state:
@@ -136,7 +136,7 @@ if prompt := st.chat_input("اكتب إجابتك هنا..."):
                 except Exception as e:
                     st.error(f"فشل في التحليل النهائي: {e}")
             else:
-                st.error("الموديل غير متوفر حالياً.")           
+                st.error("الموديل غير متوفر حالياً.")          
         }
     ]
 for message in st.session_state.messages:
