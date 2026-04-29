@@ -138,7 +138,7 @@ if prompt := st.chat_input("اكتب إجابتك هنا..."):
             else:
                 st.error("الموديل غير متوفر حالياً.")          
         
-    ]
+    
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
